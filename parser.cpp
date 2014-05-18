@@ -676,7 +676,7 @@ Term mk_type_bounded_int(Term min_token, Term max_token)
 
 Term mk_type_seq(Term type, bool nonempty)
 {
-  Term ne_type = tagged_map("seq_type", "elem_type", type);
+  Term ne_type = tagged_map("ne_seq_type", "elem_type", type);
   if (nonempty)
     return ne_type;
 
@@ -704,7 +704,7 @@ Term mk_type_fixed_seq(Term pretypes)
 
 Term mk_type_set(Term elem_type, bool nonempty)
 {
-  Term ne_type = tagged_map("set_type", "elem_type", elem_type);
+  Term ne_type = tagged_map("ne_set_type", "elem_type", elem_type);
   if (nonempty)
     return ne_type;
 
@@ -715,7 +715,10 @@ Term mk_type_set(Term elem_type, bool nonempty)
 
 Term mk_type_map(Term key_type, Term value_type)
 {
-  return tagged_map("map_type", "key_type", key_type, "value_type", value_type);
+  Term ne_type = tagged_map("ne_map_type", "key_type", key_type, "value_type", value_type);
+  Term e_type = mk_pretype_empty_map();
+  Term ts = seq_to_set(mk_seq(mk_seq(e_type), ne_type));
+  return tagged_obj("union_type", ts);
 }
 
 Term mk_type_tuple(Term lab_types)
