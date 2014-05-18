@@ -301,15 +301,15 @@ pattern:
   //| '(' labptrns ',' "..." ')'              {$$ = mk_ptrn_tuple($2, true);                        }
   | pid '(' ')'                             {$$ = mk_ptrn_tag_ptrn($1, mk_ptrn_jolly());          }
   | pid '(' pattern ')'                     {$$ = mk_ptrn_tag_ptrn($1, $3);                       }
-  | pid '(' labptrns ')'                    {$$ = mk_ptrn_tag_ptrn($1, mk_ptrn_tuple($3, false)); }
-  | pid '(' labptrns ',' "..." ')'          {$$ = mk_ptrn_tag_ptrn($1, mk_ptrn_tuple($3, true));  }
+  //| pid '(' labptrns ')'                    {$$ = mk_ptrn_tag_ptrn($1, mk_ptrn_tuple($3, false)); }
+  //| pid '(' labptrns ',' "..." ')'          {$$ = mk_ptrn_tag_ptrn($1, mk_ptrn_tuple($3, true));  }
   | vid '@' vid                             {$$ = mk_ptrn_tag_obj($1, $3);                        }
   ;
 
-labptrns:
-    lab pattern                             {$$ = mk_seq(mk_lab_ptrn($1, $2));                    }
-  | labptrns ',' lab pattern                {$$ = mk_seq($1, mk_lab_ptrn($3, $4));                }
-  ;
+//labptrns:
+//    lab pattern                             {$$ = mk_seq(mk_lab_ptrn($1, $2));                    }
+//  | labptrns ',' lab pattern                {$$ = mk_seq($1, mk_lab_ptrn($3, $4));                }
+//  ;
 
 patterns:
     pattern                                 {$$ = mk_seq($1);                                     }
