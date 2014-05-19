@@ -9,6 +9,12 @@ Term null()
   return Term();
 }
 
+Term mk_set(Term element)
+{
+  term_v ts = mk_v(element);
+  return set_obj(ts);
+}
+
 Term mk_seq_empty()
 {
   return empty_seq_obj();
@@ -729,7 +735,7 @@ Term mk_type_tuple(Term lab_types)
 
 Term mk_type_tagged_obj(Term tag_type, Term obj_type)
 {
-  return tagged_map("tag_type", "tag_type", tag_type, "obj_type", obj_type);
+  return tagged_map("tag_obj_type", "tag_type", tag_type, "obj_type", obj_type);
 }
 
 Term mk_pretype_type(Term type)
@@ -760,7 +766,7 @@ Term mk_pretype_sing(Term symb)
 
 Term mk_pretype_tagged_obj(Term tag, Term obj_type)
 {
-  return tagged_map("tag_type", "tag_type", mk_pretype_sing(tag), "obj_type", obj_type);
+  return tagged_map("tag_obj_type", "tag_type", mk_pretype_sing(tag), "obj_type", obj_type);
 }
 
 Term mk_pretype_tagged_tuple(Term tag, Term lab_types)
