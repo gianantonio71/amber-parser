@@ -550,7 +550,7 @@ Term mk_ptrn_type(Term type)
 
 Term mk_ptrn_var(Term var)
 {
-  return tagged_map("var_ptrn", "name", make_var(var));
+  return mk_ptrn_ptrn_var(mk_ptrn_jolly(), var);
 }
 
 Term mk_ptrn_ptrn_var(Term pattern, Term var)
