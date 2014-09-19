@@ -545,7 +545,7 @@ Term mk_for_iter_range(Term var, Term start_val, Term end_val)
 
 Term mk_ptrn_type(Term type)
 {
-  return tagged_obj("type_ptrn", type);
+  return tagged_obj("ptrn_type", type);
 }
 
 Term mk_ptrn_var(Term var)
@@ -555,19 +555,19 @@ Term mk_ptrn_var(Term var)
 
 Term mk_ptrn_ptrn_var(Term pattern, Term var)
 {
-  return tagged_map("var_ptrn", "name", make_var(var), "ptrn", pattern);
+  return tagged_map("ptrn_var", "var", make_var(var), "ptrn", pattern);
 }
 
 Term mk_ptrn_ctor(Term symb)
 {
   Term t = make_symb_obj(symb);
-  return tagged_obj("obj_ptrn", t);
+  return tagged_obj("ptrn_symbol", t);
 }
 
 Term mk_ptrn_num(Term num)
 {
   Term t = make_int_obj(num);
-  return tagged_obj("obj_ptrn", t);
+  return tagged_obj("ptrn_integer", t);
 }
 
 Term mk_ptrn_jolly()
@@ -575,23 +575,9 @@ Term mk_ptrn_jolly()
   return symbol_obj("ptrn_any");
 }
 
-Term mk_ptrn_expr(Term var)
-{
-  Term t = make_var(var);
-  return tagged_obj("ext_var_ptrn", t);
-}
-
-Term mk_ptrn_tuple(Term labptrns, bool open)
-{
-  return tagged_map("tuple_ptrn",
-           "fields", seq_to_set(labptrns),
-           "is_open", bool_obj(open)
-         );
-}
-
 Term mk_ptrn_tag_ptrn(Term tag, Term ptrn)
 {
-  return tagged_map("tag_ptrn",
+  return tagged_map("ptrn_tag_obj",
            "tag", mk_ptrn_ctor(tag),
            "obj", ptrn
          );
@@ -599,10 +585,50 @@ Term mk_ptrn_tag_ptrn(Term tag, Term ptrn)
 
 Term mk_ptrn_tag_obj(Term tag_var, Term obj_var)
 {
-  return tagged_map("tag_ptrn",
-           "tag", mk_ptrn_var(tag_var),
+  return tagged_map("ptrn_tag_obj",
+           "tag", mk_ptrn_ptrn_var(mk_ptrn_symb(), tag_var),
            "obj", mk_ptrn_var(obj_var)
          );
+}
+
+Term mk_ptrn_symb()
+{
+  return symbol_obj("ptrn_symbol");
+}
+
+Term mk_ptrn_int()
+{
+  return symbol_obj("ptrn_integer");
+}
+
+Term mk_ptrn_empty_seq()
+{
+  throw;
+}
+
+Term mk_ptrn_seq()
+{
+  return symbol_obj("ptrn_seq");
+}
+
+Term mk_ptrn_empty_set()
+{
+  throw;
+}
+
+Term mk_ptrn_set()
+{
+  return symbol_obj("ptrn_set");
+}
+
+Term mk_ptrn_empty_map()
+{
+  throw;
+}
+
+Term mk_ptrn_map()
+{
+  return symbol_obj("ptrn_map");
 }
 
 Term mk_lab_ptrn(Term lab, Term ptrn)
@@ -992,6 +1018,14 @@ Term mk_expr_type_test(Term expr, Term type)
          );
 }
 
+Term mk_expr_type_cast(Term type, Term expr)
+{
+  return tagged_map("cast_expr",
+           "expr", expr,
+           "type", type
+         );
+}
+
 Term mk_expr_dot_acc(Term expr, Term name)
 {
   return tagged_map("accessor",
@@ -1150,12 +1184,13 @@ Term mk_expr_do(Term statements)
   return tagged_obj("do_expr", statements);
 }
 
-Term mk_expr_repl(Term ptrn, Term src_expr, Term rep_expr)
+Term mk_expr_repl(Term type, Term var, Term src_expr, Term rep_expr)
 {
   return tagged_map("replace_expr",
            "expr",     rep_expr,
            "src_expr", src_expr,
-           "ptrn",     ptrn
+           "type",     type,
+           "var",      make_var(var)
          );
 }
 

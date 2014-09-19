@@ -296,7 +296,7 @@ pattern:
   | ctor                                    {$$ = mk_ptrn_ctor($1);                               }
   | snum                                    {$$ = mk_ptrn_num($1);                                }
   | '_'                                     {$$ = mk_ptrn_jolly();                                }
-  | '#' vid                                 {$$ = mk_ptrn_expr($2);                               }
+  //| '#' vid                                 {$$ = mk_ptrn_expr($2);                               }
   //| '(' labptrns ')'                        {$$ = mk_ptrn_tuple($2, false);                       }
   //| '(' labptrns ',' "..." ')'              {$$ = mk_ptrn_tuple($2, true);                        }
   | pid '(' ')'                             {$$ = mk_ptrn_tag_ptrn($1, mk_ptrn_jolly());          }
@@ -305,6 +305,15 @@ pattern:
   //| pid '(' labptrns ',' "..." ')'          {$$ = mk_ptrn_tag_ptrn($1, mk_ptrn_tuple($3, true));  }
   | vid '@' vid                             {$$ = mk_ptrn_tag_obj($1, $3);                        }
   ;
+
+  | '+'                                     {$$ = mk_ptrn_symb();                                 }
+  | '*'                                     {$$ = mk_ptrn_int();                                  }
+  | '[' ']'                                 {$$ = mk_ptrn_empty_seq();                            }
+  | '[' "..." ']'                           {$$ = mk_ptrn_seq();                                  }
+  | '{' '}'                                 {$$ = mk_ptrn_empty_set();                            }
+  | '{' "..." '}'                           {$$ = mk_ptrn_set();                                  }
+  | '(' ')'                                 {$$ = mk_ptrn_empty_map();                            }
+  | '(' "..." ')'                           {$$ = mk_ptrn_map();                                  }
 
 //labptrns:
 //    lab pattern                             {$$ = mk_seq(mk_lab_ptrn($1, $2));                    }
@@ -444,6 +453,10 @@ expr:
 
   | expr "::" type                                          {$$ = mk_expr_type_test($1, $3);                  }
 
+  | tname '(' expr ')'                                      {$$ = mk_expr_type_cast(mk_type_ref($1), $3);     }
+  | tvar '(' expr ')'                                       {$$ = mk_expr_type_cast(mk_type_var($1), $3);     }
+  | tname '[' types ']' '(' expr ')'                        {$$ = mk_expr_type_cast(mk_type_ref($1, $3), $6); }
+
   | expr '.' uqctor                                         {$$ = mk_expr_dot_acc($1, $3);                    }
   | expr '.' uqctor '?'                                     {$$ = mk_expr_dot_acc_test($1, $3);               }
   //| expr '.' '*'                                            {$$ = mk_expr_dot_acc_star($1);                   }
@@ -478,12 +491,12 @@ expr:
 
   | '{' stmts '}'                                           {$$ = mk_expr_do($2);                             }
 
-  | "replace" pattern "in" expr "with" expr exp_close       {$$ = mk_expr_repl($2, $4, $6);                   }
+  | "replace" type vid "in" expr "with" expr exp_close      {$$ = mk_expr_repl($2, $3, $5, $7);               }
   | "select" type "in" expr exp_close                       {$$ = mk_expr_sel($2, $4);                        }
 
-  | "retrieve" expr "from" pattern "in" expr exp_close      {$$ = mk_expr_retr($2, $4, $6);                   }
-  | "retrieve" expr "from" pattern "in" expr
-                    "if" expr exp_close                     {$$ = mk_expr_retr($2, $4, $6, $8);               }
+  //| "retrieve" expr "from" pattern "in" expr exp_close      {$$ = mk_expr_retr($2, $4, $6);                   }
+  //| "retrieve" expr "from" pattern "in" expr
+  //                  "if" expr exp_close                     {$$ = mk_expr_retr($2, $4, $6, $8);               }
 
   | expr "is" type                                          {$$ = mk_expr_is($1, $3);                         }
   //| expr "where" where_fndefs                               {$$ = mk_expr_where($1, $3);                      }
