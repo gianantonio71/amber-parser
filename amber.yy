@@ -328,12 +328,6 @@ patterns:
 /******************************* TYPES ********************************/
 
 type:
-    ntltype
-  | type '*'                                      {$$ = mk_type_set($1, false);                     }
-  | type '+'                                      {$$ = mk_type_set($1, true);                      }
-  ;
-
-ntltype:
     tname                                         {$$ = mk_type_ref($1);                            }
   | tvar                                          {$$ = mk_type_var($1);                            }
   | tname '[' types ']'                           {$$ = mk_type_ref($1, $3);                        }
@@ -345,17 +339,16 @@ ntltype:
   | '[' '*' ".." snum ']'                         {$$ = mk_type_up_bounded_int($4);                 }
   | '[' snum ".." snum ']'                        {$$ = mk_type_bounded_int($2, $4);                }
 
-  | '[' ntltype '*' ']'                           {$$ = mk_type_seq($2, false);                     }
-  | '[' ntltype '+' ']'                           {$$ = mk_type_seq($2, true);                      }
-//  | '[' ntltypes ']'                              {$$ = mk_type_fixed_seq($2);                      }
+  | '[' type ']'                                  {$$ = mk_type_seq($2, false);                     }
+  | '[' type '^' ']'                              {$$ = mk_type_seq($2, true);                      }
 
-  | '(' type '*' ')'                              {$$ = mk_type_set($2, false);                     }
-  | '(' type '+' ')'                              {$$ = mk_type_set($2, true);                      }
+  | type '*'                                      {$$ = mk_type_set($1, false);                     }
+  | type '+'                                      {$$ = mk_type_set($1, true);                      }
 
   | '(' type "=>" type ')'                        {$$ = mk_type_map($2, $4);                        }
   | '(' labtypes ')'                              {$$ = mk_type_tuple($2);                          }
 
-  | '(' ntltype '@' type ')'                      {$$ = mk_type_tagged_obj($2, $4);                 }
+  | '(' type '@' type ')'                         {$$ = mk_type_tagged_obj($2, $4);                 }
   ;
 
 pretype:
@@ -377,11 +370,6 @@ types:
     type                                          {$$ = mk_seq($1);                                 }
   | types ',' type                                {$$ = mk_seq($1, $3);                             }
   ;
-
-//ntltypes:
-//    ntltype                                       {$$ = mk_seq($1);                                 }
-//  | ntltypes ',' ntltype                          {$$ = mk_seq($1, $3);                             }
-//  ;
 
 pretypes:
     pretype                                       {$$ = mk_seq($1);                                 }
