@@ -287,13 +287,15 @@ stmts:
 
 /*************************** SWITCH PATTERNS **************************/
 
-// WHAT ABOUT true, false AND nil AS PATTERNS?
-
 switch_ptrn:
     type                                    {$$ = mk_ptrn_type($1);                               }
-  | vid                                     {$$ = mk_ptrn_var($1);                                }
-  | switch_ptrn vid                         {$$ = mk_ptrn_ptrn_var($1, $2);                       }
-  | ctor                                    {$$ = mk_ptrn_ctor($1);                               }
+  | vid '?'                                 {$$ = mk_ptrn_var($1);                                }
+  | switch_ptrn vid '?'                     {$$ = mk_ptrn_ptrn_var($1, $2);                       }
+  | vid                                     {$$ = mk_ptrn_ctor($1);                               }
+  | "nil"                                   {$$ = mk_ptrn_ctor($1);                               }
+  | "true"                                  {$$ = mk_ptrn_ctor($1);                               }
+  | "false"                                 {$$ = mk_ptrn_ctor($1);                               }
+  | "in"                                    {$$ = mk_ptrn_ctor($1);                               }
   | snum                                    {$$ = mk_ptrn_num($1);                                }
   | '_'                                     {$$ = mk_ptrn_jolly();                                }
   | pid '(' ')'                             {$$ = mk_ptrn_tag_ptrn($1, mk_ptrn_jolly());          }
