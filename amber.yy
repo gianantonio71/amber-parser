@@ -750,10 +750,16 @@ string clean_str(string str)
       return str;
 
     case type_id:
+    {
+      string new_str = "";
       for (int i=0 ; i < len ; i++)
-        if (isupper(str[i]))
-          str[i] = tolower(str[i]);
-      return str;
+      {
+        if (i > 0 && isupper(str[i]))
+          new_str += "_";
+        new_str += tolower(str[i]);
+      }
+      return new_str;
+    }
 
     case type_var:
       for (int i=0 ; i < len ; i++)

@@ -661,10 +661,7 @@ Term mk_type_ref(Term name, Term type_pars)
 Term mk_type_inline(Term pretypes)
 {
   if (pretypes.size() > 1)
-  {
-    Term t = seq_to_set(pretypes);
-    return tagged_obj("union_type", t);
-  }
+    return tagged_obj("syn_union_type", pretypes);
   else
     return pretypes.item(0);
 }
@@ -693,17 +690,7 @@ Term mk_type_bounded_int(Term min_token, Term max_token)
 {
   int min = make_int(min_token).get_int();
   int max = make_int(max_token).get_int();
-
-  int size = max - min + 1;
-
-  if (size <= 0)
-  {
-    void yyerror(char const *);
-    yyerror("Invalid range type");
-    halt;
-  }
-
-  return tagged_map("int_range", "min", int_obj(min), "size", int_obj(size));
+  return tagged_map("syn_int_range", "min", int_obj(min), "max", int_obj(max));
 }
 
 Term mk_type_seq(Term type, bool nonempty)
@@ -715,18 +702,7 @@ Term mk_type_seq(Term type, bool nonempty)
   Term e_type = mk_pretype_empty_seq();
   Term ts = mk_seq(e_type);
   ts = mk_seq(ts, ne_type);
-  ts = seq_to_set(ts);
-  return tagged_obj("union_type", ts);
-  //   Term mk_type_inline(Term pretypes)
-  // {
-  //   if (pretypes.size() > 1)
-  //   {
-  //     Term t = seq_to_set(pretypes);
-  //     return tagged_obj("union_type", t);
-  //   }
-  //   else
-  //     return pretypes.item(0);
-  // }
+  return tagged_obj("syn_union_type", ts);
 }
 
 Term mk_type_fixed_seq(Term pretypes)
@@ -741,22 +717,21 @@ Term mk_type_set(Term elem_type, bool nonempty)
     return ne_type;
 
   Term e_type = mk_pretype_empty_set();
-  Term ts = seq_to_set(mk_seq(mk_seq(e_type), ne_type));
-  return tagged_obj("union_type", ts);
+  Term ts = mk_seq(mk_seq(e_type), ne_type);
+  return tagged_obj("syn_union_type", ts);
 }
 
 Term mk_type_map(Term key_type, Term value_type)
 {
   Term ne_type = tagged_map("ne_map_type", "key_type", key_type, "value_type", value_type);
   Term e_type = mk_pretype_empty_map();
-  Term ts = seq_to_set(mk_seq(mk_seq(e_type), ne_type));
-  return tagged_obj("union_type", ts);
+  Term ts = mk_seq(mk_seq(e_type), ne_type);
+  return tagged_obj("syn_union_type", ts);
 }
 
 Term mk_type_tuple(Term lab_types)
 {
-  Term t = seq_to_set(lab_types);
-  return tagged_obj("tuple_type", t);
+  return tagged_obj("tuple_type", lab_types);
 }
 
 Term mk_type_tagged_obj(Term tag_type, Term obj_type)
