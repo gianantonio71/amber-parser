@@ -285,26 +285,20 @@ stmts:
   | stmts stmt                                        {$$ = mk_seq($1, $2);                        }
   ;
 
-/****************************** PATTERNS ******************************/
+/*************************** SWITCH PATTERNS **************************/
 
 // WHAT ABOUT true, false AND nil AS PATTERNS?
 
-pattern:
+switch_ptrn:
     type                                    {$$ = mk_ptrn_type($1);                               }
   | vid                                     {$$ = mk_ptrn_var($1);                                }
-  | pattern vid                             {$$ = mk_ptrn_ptrn_var($1, $2);                       }
+  | switch_ptrn vid                         {$$ = mk_ptrn_ptrn_var($1, $2);                       }
   | ctor                                    {$$ = mk_ptrn_ctor($1);                               }
   | snum                                    {$$ = mk_ptrn_num($1);                                }
   | '_'                                     {$$ = mk_ptrn_jolly();                                }
-  //| '#' vid                                 {$$ = mk_ptrn_expr($2);                               }
-  //| '(' labptrns ')'                        {$$ = mk_ptrn_tuple($2, false);                       }
-  //| '(' labptrns ',' "..." ')'              {$$ = mk_ptrn_tuple($2, true);                        }
   | pid '(' ')'                             {$$ = mk_ptrn_tag_ptrn($1, mk_ptrn_jolly());          }
-  | pid '(' pattern ')'                     {$$ = mk_ptrn_tag_ptrn($1, $3);                       }
-  //| pid '(' labptrns ')'                    {$$ = mk_ptrn_tag_ptrn($1, mk_ptrn_tuple($3, false)); }
-  //| pid '(' labptrns ',' "..." ')'          {$$ = mk_ptrn_tag_ptrn($1, mk_ptrn_tuple($3, true));  }
+  | pid '(' switch_ptrn ')'                 {$$ = mk_ptrn_tag_ptrn($1, $3);                       }
   | vid '@' vid                             {$$ = mk_ptrn_tag_obj($1, $3);                        }
-  ;
 
   | '+'                                     {$$ = mk_ptrn_symb();                                 }
   | '*'                                     {$$ = mk_ptrn_int();                                  }
@@ -314,15 +308,21 @@ pattern:
   | '{' "..." '}'                           {$$ = mk_ptrn_set();                                  }
   | '(' ')'                                 {$$ = mk_ptrn_empty_map();                            }
   | '(' "..." ')'                           {$$ = mk_ptrn_map();                                  }
+  ;
 
-//labptrns:
-//    lab pattern                             {$$ = mk_seq(mk_lab_ptrn($1, $2));                    }
-//  | labptrns ',' lab pattern                {$$ = mk_seq($1, mk_lab_ptrn($3, $4));                }
-//  ;
+switch_ptrns:
+    switch_ptrn                             {$$ = mk_seq($1);                                     }
+  | switch_ptrns ',' switch_ptrn            {$$ = mk_seq($1, $3);                                 }
+  ;
 
-patterns:
-    pattern                                 {$$ = mk_seq($1);                                     }
-  | patterns ',' pattern                    {$$ = mk_seq($1, $3);                                 }
+/*************************** CLAUSE PATTERNS **************************/
+
+clause_ptrn:
+    '_'                                     {$$ = mk_ptrn_jolly();                                }
+  | vid                                     {$$ = mk_ptrn_var($1);                                }
+  | pid '(' ')'                             {$$ = mk_ptrn_tag_ptrn($1, mk_ptrn_jolly());          }
+  | pid '(' vid ')'                         {$$ = mk_ptrn_tag_ptrn($1, mk_ptrn_var($3));          }
+  | pid '(' ')' vid                         {$$ = mk_ptrn_ptrn_var(mk_ptrn_tag_ptrn($1, mk_ptrn_jolly()), $4);  }
   ;
 
 /******************************* TYPES ********************************/
@@ -482,12 +482,7 @@ expr:
   | "replace" type vid "in" expr "with" expr exp_close      {$$ = mk_expr_repl($2, $3, $5, $7);               }
   | "select" type "in" expr exp_close                       {$$ = mk_expr_sel($2, $4);                        }
 
-  //| "retrieve" expr "from" pattern "in" expr exp_close      {$$ = mk_expr_retr($2, $4, $6);                   }
-  //| "retrieve" expr "from" pattern "in" expr
-  //                  "if" expr exp_close                     {$$ = mk_expr_retr($2, $4, $6, $8);               }
-
   | expr "is" type                                          {$$ = mk_expr_is($1, $3);                         }
-  //| expr "where" where_fndefs                               {$$ = mk_expr_where($1, $3);                      }
   ;
 
 exprs:
@@ -522,18 +517,13 @@ if_branches:
   ;
 
 match_branch:
-    patterns '=' expr                                       {$$ = mk_match_branch($1, $3);                      }
-  | patterns '=' expr "let" stmts                           {$$ = mk_match_branch($1, mk_expr_let($3, $5));     }
+    switch_ptrns '=' expr                                   {$$ = mk_match_branch($1, $3);                      }
+  | switch_ptrns '=' expr "let" stmts                       {$$ = mk_match_branch($1, mk_expr_let($3, $5));     }
 
 match_branches:
     match_branch                                            {$$ = mk_seq($1);                                 }
   | match_branches ',' match_branch                         {$$ = mk_seq($1, $3);                             }
   ;
-
-//match_branches:
-//    patterns '=' expr                                       {$$ = mk_seq(mk_match_branch($1, $3));              }
-//  | match_branches ',' patterns '=' expr                      {$$ = mk_seq($1, mk_match_branch($3, $5));          }
-//  ;
 
 clauses:
     clause                                                  {$$ = mk_seq($1);                                 }
@@ -541,10 +531,8 @@ clauses:
   ;
 
 clause:
-    pattern "<-" expr                                       {$$ = mk_clause_in($1, $3);                       }
-  | pattern "=>" pattern "<-" expr                          {$$ = mk_clause_in_map($1, $3, $5);                       }
-  | pattern "</-" expr                                      {$$ = mk_clause_not_in($1, $3);                   }
-  | pattern "=>" pattern "</-" expr                         {$$ = mk_clause_not_in_map($1, $3, $5);                       }
+    clause_ptrn "<-" expr                                   {$$ = mk_clause_in($1, $3);                       }
+  | clause_ptrn "=>" clause_ptrn "<-" expr                  {$$ = mk_clause_in_map($1, $3, $5);                       }
   | vid '=' expr                                            {$$ = mk_clause_eq($1, $3);                       }
   | '(' clauses ')'                                         {$$ = mk_clause_and($2);                          }
   | clause "\\/" clause                                     {$$ = mk_clause_or($1, $3);                       }
